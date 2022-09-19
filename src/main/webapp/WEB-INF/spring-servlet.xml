@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p" xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:tx="http://www.springframework.org/schema/tx" xsi:schemaLocation="http://www.springframework.org/schema/beans
+   http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+   http://www.springframework.org/schema/context
+   http://www.springframework.org/schema/context/spring-context-3.0.xsd
+   http://www.springframework.org/schema/tx
+   http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+   http://www.springframework.org/schema/mvc
+   http://www.springframework.org/schema/mvc/spring-mvc.xsd
+">
+
+	<!-- Annoatation Enabling & transactional annoation enabling-->
+	<context:component-scan base-package="controller"></context:component-scan>
+	<context:component-scan base-package="exception"></context:component-scan>
+	<tx:annotation-driven />
+	<mvc:annotation-driven />
+
+	<!-- View Resolver bean-->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver" name="viewResolver">
+		<property name="prefix" value="/WEB-INF/views/"></property>
+		<property name="suffix" value=".jsp"></property>
+	</bean>
+
+	<!-- Data Source Config Bean-->
+
+	<bean class="org.springframework.jdbc.datasource.DriverManagerDataSource" name="ds">
+
+		<property name="driverClassName" value="com.mysql.cj.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://localhost:3306/testdb" />
+		<property name="username" value="root" />
+		<property name="password" value="root" />
+	</bean>
+
+	<!-- HiberanteTemplate Config Beans-->
+
+	<bean class="org.springframework.orm.hibernate5.LocalSessionFactoryBean" name="localsessionFactory">
+
+		<property name="dataSource" ref="ds"></property>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+				<prop key="hibernate.show_sql">true</prop>
+
+			</props>
+		</property>
+
+		<property name="annotatedClasses">
+			<list>
+				<value>
+				domain.User
+				</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean class="org.springframework.orm.hibernate5.HibernateTemplate" name="hibernateTemplate">
+		<property name="sessionFactory" ref="localsessionFactory"></property>
+	</bean>
+
+
+	<bean class="org.springframework.orm.hibernate5.HibernateTransactionManager" name="transactionManager">
+		<property name="sessionFactory" ref="localsessionFactory"></property>
+	</bean>
+
+	<!-- Dao Beans-->
+	<bean class="dao.UserDao" name="userDao">
+		<property name="hibernateTemplate" ref="hibernateTemplate"></property>
+	</bean>
+
+	<!--Mapper Bean-->
+
+	<bean class="org.modelmapper.ModelMapper" name="modelMapper"></bean>
+	<!--Service Beans-->
+	<bean class="services.UserService" name="userService">
+		<property name="userDao" ref="userDao"></property>
+		<property name="modelMapper" ref="modelMapper"></property>
+	</bean>
+
+
+	<bean class="controller.UserController" name="userController">
+		<property name="userService" ref="userService"></property>
+	</bean>
+
+
+</beans>
